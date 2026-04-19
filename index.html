@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Calculator | Th3an</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+body{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  background:#0a0e1a;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
+  padding:16px;
+}
+
+.wrap{
+  background:linear-gradient(145deg,#0d1117 0%,#161b27 50%,#0d1117 100%);
+  border-radius:28px;
+  overflow:hidden;
+  width:100%;max-width:400px;
+  padding:0 0 20px;
+  border:.5px solid rgba(255,255,255,.08);
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+}
+
+/* Tab switcher */
+.tabs{
+  display:flex;align-items:center;
+  margin:18px 14px 0;
+  background:rgba(255,255,255,.05);
+  border:.5px solid rgba(255,255,255,.1);
+  border-radius:14px;
+  padding:4px;gap:4px;
+}
+.tab{
+  flex:1;text-align:center;
+  padding:8px 0;border-radius:10px;
+  font-size:13px;font-weight:600;letter-spacing:.3px;
+  color:rgba(255,255,255,.35);
+  cursor:pointer;transition:all .18s;user-select:none;
+}
+.tab.active{
+  background:rgba(251,168,29,.18);
+  color:rgba(251,168,29,1);
+  border:.5px solid rgba(251,168,29,.28);
+}
+
+/* Panels */
+.panel{display:none}
+.panel.show{display:block}
+
+/* Normal display */
+.norm-display{
+  margin:12px 14px 0;
+  background:rgba(255,255,255,.04);
+  border:.5px solid rgba(255,255,255,.1);
+  border-radius:18px;
+  padding:16px 18px 14px;
+  min-height:96px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.norm-expr{
+  font-size:14px;font-weight:300;
+  color:rgba(255,255,255,.32);
+  text-align:right;min-height:20px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.norm-val{
+  font-size:42px;font-weight:200;
+  color:rgba(255,255,255,.92);
+  text-align:right;line-height:1.15;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  transition:font-size .12s;
+}
+
+/* Normal 4-col pad */
+.norm-pad{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:8px;padding:12px 14px 4px;
+}
+
+/* Binary displays */
+.displays{
+  margin:12px 14px 0;
+  border-radius:18px;overflow:hidden;
+  border:.5px solid rgba(255,255,255,.1);
+}
+.drow{
+  display:flex;align-items:center;
+  padding:11px 16px;
+  background:rgba(255,255,255,.04);
+  border-bottom:.5px solid rgba(255,255,255,.07);
+  cursor:pointer;transition:background .13s;
+}
+.drow:last-child{border-bottom:none}
+.drow.active{background:rgba(251,168,29,.08)}
+.drow:active{background:rgba(255,255,255,.09)}
+.dlabel{
+  font-size:12px;font-weight:700;letter-spacing:.6px;
+  color:rgba(251,168,29,.6);width:40px;flex-shrink:0;transition:color .13s;
+}
+.drow.active .dlabel{color:rgba(251,168,29,1)}
+.dval{
+  flex:1;text-align:right;
+  font-size:16px;font-weight:300;
+  color:rgba(255,255,255,.42);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-variant-numeric:tabular-nums;transition:color .13s;
+}
+.drow.active .dval{color:rgba(255,255,255,.95);font-weight:400}
+
+.hexrow{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:6px;
+  margin:10px 14px 0;
+  padding:9px 12px;
+  background:rgba(255,255,255,.03);
+  border:.5px solid rgba(255,255,255,.08);
+  border-radius:14px;
+}
+.hk{
+  text-align:center;padding:5px 0;border-radius:8px;
+  font-size:15px;font-weight:500;
+  color:rgba(255,255,255,.18);
+  cursor:pointer;transition:all .12s;user-select:none;
+}
+.hk.on{color:rgba(251,168,29,.9);background:rgba(251,168,29,.1)}
+.hk:active{transform:scale(.88)}
+
+/* Binary 6-col pad */
+.bin-pad{
+  display:grid;grid-template-columns:repeat(6,1fr);
+  gap:7px;padding:10px 14px 4px;
+}
+
+/* Keys */
+.k{
+  height:54px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:400;
+  cursor:pointer;user-select:none;
+  transition:transform .1s,background .1s;
+  border:.5px solid rgba(255,255,255,.09);
+  color:rgba(255,255,255,.88);
+  background:rgba(255,255,255,.07);
+}
+.k:hover{background:rgba(255,255,255,.11)}
+.k:active{transform:scale(.87);background:rgba(255,255,255,.17)!important}
+
+.k.op{background:rgba(251,168,29,.16);border-color:rgba(251,168,29,.25);color:rgba(251,168,29,.95);font-size:19px}
+.k.op:hover{background:rgba(251,168,29,.22)}
+.k.op:active{background:rgba(251,168,29,.34)!important}
+
+.k.fn{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.18);font-size:14px;font-weight:600;color:rgba(255,255,255,.75)}
+.k.fn:hover{background:rgba(255,255,255,.17)}
+
+.k.fn2{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);font-size:14px;font-weight:500;color:rgba(255,255,255,.58)}
+.k.fn2:hover{background:rgba(255,255,255,.12)}
+
+.k.eq{background:rgba(251,168,29,.2);border-color:rgba(251,168,29,.32);color:rgba(251,168,29,1);font-size:20px;font-weight:500}
+.k.eq:hover{background:rgba(251,168,29,.28)}
+.k.eq:active{background:rgba(251,168,29,.42)!important}
+
+.k.ans{background:rgba(120,100,255,.15);border-color:rgba(120,100,255,.25);color:rgba(160,140,255,.95);font-size:14px;font-weight:600}
+.k.ans:hover{background:rgba(120,100,255,.22)}
+
+.k.dim{opacity:.18;pointer-events:none}
+.k.sp2{grid-column:span 2}
+.k.ghost{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="tabs">
+    <div class="tab active" id="tab-norm" onclick="switchTab('norm')">Calculator</div>
+    <div class="tab" id="tab-bin" onclick="switchTab('bin')">Binary</div>
+  </div>
+
+  <!-- ── NORMAL CALCULATOR ── -->
+  <div class="panel show" id="panel-norm">
+    <div class="norm-display">
+      <div class="norm-expr" id="n-expr"></div>
+      <div class="norm-val" id="n-val">0</div>
+    </div>
+    <div class="norm-pad">
+      <div class="k fn" onclick="nAC()">AC</div>
+      <div class="k fn2" onclick="nSign()">+/−</div>
+      <div class="k fn2" onclick="nPct()">%</div>
+      <div class="k op" onclick="nOp('/')">÷</div>
+
+      <div class="k" onclick="nNum('7')">7</div>
+      <div class="k" onclick="nNum('8')">8</div>
+      <div class="k" onclick="nNum('9')">9</div>
+      <div class="k op" onclick="nOp('*')">×</div>
+
+      <div class="k" onclick="nNum('4')">4</div>
+      <div class="k" onclick="nNum('5')">5</div>
+      <div class="k" onclick="nNum('6')">6</div>
+      <div class="k op" onclick="nOp('-')">−</div>
+
+      <div class="k" onclick="nNum('1')">1</div>
+      <div class="k" onclick="nNum('2')">2</div>
+      <div class="k" onclick="nNum('3')">3</div>
+      <div class="k op" onclick="nOp('+')">+</div>
+
+      <div class="k sp2" onclick="nNum('0')">0</div>
+      <div class="k" onclick="nDot()">.</div>
+      <div class="k eq" onclick="nEq()">=</div>
+    </div>
+  </div>
+
+  <!-- ── BINARY CALCULATOR ── -->
+  <div class="panel" id="panel-bin">
+    <div class="displays">
+      <div class="drow active" id="r-dec" onclick="setBase('dec')">
+        <span class="dlabel">DEC</span><span class="dval" id="v-dec">0</span>
+      </div>
+      <div class="drow" id="r-bin" onclick="setBase('bin')">
+        <span class="dlabel">BIN</span><span class="dval" id="v-bin">0</span>
+      </div>
+      <div class="drow" id="r-oct" onclick="setBase('oct')">
+        <span class="dlabel">OCT</span><span class="dval" id="v-oct">0</span>
+      </div>
+      <div class="drow" id="r-hex" onclick="setBase('hex')">
+        <span class="dlabel">HEX</span><span class="dval" id="v-hex">0</span>
+      </div>
+    </div>
+    <div class="hexrow">
+      <div class="hk" id="hA" onclick="bInp('A')">A</div>
+      <div class="hk" id="hB" onclick="bInp('B')">B</div>
+      <div class="hk" id="hC" onclick="bInp('C')">C</div>
+      <div class="hk" id="hD" onclick="bInp('D')">D</div>
+      <div class="hk" id="hE" onclick="bInp('E')">E</div>
+      <div class="hk" id="hF" onclick="bInp('F')">F</div>
+    </div>
+    <div class="bin-pad">
+      <div class="k" id="k7" onclick="bInp('7')">7</div>
+      <div class="k" id="k8" onclick="bInp('8')">8</div>
+      <div class="k" id="k9" onclick="bInp('9')">9</div>
+      <div class="k op" onclick="bInp('(')">(</div>
+      <div class="k op" onclick="bInp(')')">)</div>
+      <div class="k fn" onclick="bAC()">AC</div>
+
+      <div class="k" id="k4" onclick="bInp('4')">4</div>
+      <div class="k" id="k5" onclick="bInp('5')">5</div>
+      <div class="k" id="k6" onclick="bInp('6')">6</div>
+      <div class="k op" onclick="bInp('*')">×</div>
+      <div class="k op" onclick="bInp('/')">÷</div>
+      <div class="k fn" onclick="bDel()">⌫</div>
+
+      <div class="k" id="k1" onclick="bInp('1')">1</div>
+      <div class="k" id="k2" onclick="bInp('2')">2</div>
+      <div class="k" id="k3" onclick="bInp('3')">3</div>
+      <div class="k op" onclick="bInp('+')">+</div>
+      <div class="k op" onclick="bInp('-')">−</div>
+      <div class="k fn" style="font-size:15px;color:rgba(255,200,80,.5)">&#9728;</div>
+
+      <div class="k" id="k0" onclick="bInp('0')">0</div>
+      <div class="k fn" onclick="bInp('.')">.</div>
+      <div class="k ghost"></div>
+      <div class="k ans" onclick="bUseAns()">Ans</div>
+      <div class="k eq sp2" onclick="bCalc()">=</div>
+    </div>
+  </div>
+
+</div>
+<script>
+/* ── Tab ── */
+let activeTab = 'norm';
+function switchTab(t) {
+  activeTab = t;
+  ['norm','bin'].forEach(x => {
+    document.getElementById('tab-' + x).classList.toggle('active', x === t);
+    document.getElementById('panel-' + x).classList.toggle('show', x === t);
+  });
+}
+
+/* ══ NORMAL CALCULATOR ══ */
+let nCurrent = '0', nPrev = null, nOper = null, nWaitNew = false, nExprStr = '';
+
+function nShow() {
+  const el = document.getElementById('n-val');
+  el.textContent = nCurrent;
+  el.style.fontSize = nCurrent.length > 13 ? '24px' : nCurrent.length > 9 ? '32px' : '42px';
+  document.getElementById('n-expr').textContent = nExprStr;
+}
+
+function nAC() {
+  nCurrent = '0'; nPrev = null; nOper = null; nWaitNew = false; nExprStr = '';
+  nShow();
+}
+
+function nNum(d) {
+  if (nWaitNew) { nCurrent = d; nWaitNew = false; }
+  else { nCurrent = nCurrent === '0' ? d : nCurrent + d; }
+  nShow();
+}
+
+function nDot() {
+  if (nWaitNew) { nCurrent = '0.'; nWaitNew = false; return nShow(); }
+  if (!nCurrent.includes('.')) nCurrent += '.';
+  nShow();
+}
+
+function nSign() {
+  if (nCurrent === '0') return;
+  nCurrent = nCurrent.startsWith('-') ? nCurrent.slice(1) : '-' + nCurrent;
+  nShow();
+}
+
+function nPct() {
+  let v = parseFloat(nCurrent);
+  nCurrent = nFmt(nPrev !== null && nOper === '+' || nOper === '-' ? nPrev * v / 100 : v / 100);
+  nShow();
+}
+
+function nOpSym(op){ return {'+':'+','-':'−','*':'×','/':'÷'}[op]||op; }
+
+function nFmt(v) {
+  if (!isFinite(v)) return 'Error';
+  const s = parseFloat(v.toPrecision(12));
+  return String(s);
+}
+
+function nCompute(a, b, op) {
+  if (op==='+') return a+b;
+  if (op==='-') return a-b;
+  if (op==='*') return a*b;
+  if (op==='/') return b!==0 ? a/b : NaN;
+  return b;
+}
+
+function nOp(op) {
+  const cur = parseFloat(nCurrent);
+  if (nOper && !nWaitNew) {
+    const res = nCompute(nPrev, cur, nOper);
+    nPrev = res;
+    nCurrent = nFmt(res);
+  } else {
+    nPrev = cur;
+  }
+  nOper = op;
+  nWaitNew = true;
+  nExprStr = nFmt(nPrev) + ' ' + nOpSym(op);
+  nShow();
+}
+
+function nEq() {
+  if (!nOper) return;
+  const a = nPrev, b = parseFloat(nCurrent);
+  const res = nCompute(a, b, nOper);
+  nExprStr = nFmt(a) + ' ' + nOpSym(nOper) + ' ' + nFmt(b) + ' =';
+  nCurrent = nFmt(res);
+  nPrev = null; nOper = null; nWaitNew = true;
+  nShow();
+}
+
+/* ══ BINARY CALCULATOR ══ */
+let bExpr = '', bAnsVal = 0, base = 'dec';
+
+function setBase(b) {
+  base = b;
+  ['dec','bin','oct','hex'].forEach(x => {
+    document.getElementById('r-'+x).classList.toggle('active', x===b);
+  });
+  refreshDim();
+}
+
+function refreshDim() {
+  const limits = {dec:null,bin:['0','1'],oct:['0','1','2','3','4','5','6','7'],hex:null};
+  const lim = limits[base];
+  ['0','1','2','3','4','5','6','7','8','9'].forEach(d => {
+    const el = document.getElementById('k'+d);
+    if(el) el.classList.toggle('dim', lim ? !lim.includes(d) : false);
+  });
+  'ABCDEF'.split('').forEach(c => {
+    document.getElementById('h'+c).classList.toggle('on', base==='hex');
+  });
+}
+
+function bParse() {
+  if (!bExpr) return 0;
+  let e = bExpr;
+  if (base==='bin') e = e.replace(/[01]+/g, m => parseInt(m,2));
+  else if (base==='oct') e = e.replace(/[0-7]+/g, m => parseInt(m,8));
+  else if (base==='hex') e = e.replace(/[0-9A-F]+/gi, m => parseInt(m,16));
+  try { const r = Function('"use strict";return ('+e+')')(); return isFinite(r)?r:0; }
+  catch { return 0; }
+}
+
+function bUpdate() {
+  const val = bParse();
+  const iv = Math.trunc(val);
+  const isInt = val===iv;
+  document.getElementById('v-dec').textContent = bExpr||'0';
+  document.getElementById('v-bin').textContent = isInt?(iv>>>0).toString(2):'—';
+  document.getElementById('v-oct').textContent = isInt?(iv>>>0).toString(8):'—';
+  document.getElementById('v-hex').textContent = isInt?(iv>>>0).toString(16).toUpperCase():'—';
+}
+
+function bInp(c){ bExpr+=c; bUpdate(); }
+function bAC(){ bExpr=''; bUpdate(); }
+function bDel(){ bExpr=bExpr.slice(0,-1); bUpdate(); }
+function bUseAns(){ bExpr+=String(bAnsVal); bUpdate(); }
+function bCalc(){
+  const r=bParse();
+  if(isFinite(r)){ bAnsVal=r; bExpr=String(r); }
+  bUpdate();
+}
+
+/* Keyboard */
+document.addEventListener('keydown', e => {
+  if (activeTab==='norm') {
+    const k=e.key;
+    if('0123456789'.includes(k)) nNum(k);
+    else if(k==='.') nDot();
+    else if(k==='+') nOp('+');
+    else if(k==='-') nOp('-');
+    else if(k==='*') nOp('*');
+    else if(k==='/'){e.preventDefault();nOp('/');}
+    else if(k==='Enter'||k==='=') nEq();
+    else if(k==='Backspace'){
+      if(nCurrent.length>1) nCurrent=nCurrent.slice(0,-1);
+      else nCurrent='0';
+      nShow();
+    }
+    else if(k==='Escape') nAC();
+    else if(k==='%') nPct();
+  } else {
+    const k=e.key;
+    if('0123456789'.includes(k)) bInp(k);
+    else if('ABCDEF'.includes(k.toUpperCase())&&base==='hex') bInp(k.toUpperCase());
+    else if(['+','-','*','/','(',')'].includes(k)) bInp(k);
+    else if(k==='Enter'||k==='=') bCalc();
+    else if(k==='Backspace') bDel();
+    else if(k==='Escape') bAC();
+  }
+});
+
+nShow();
+bUpdate();
+refreshDim();
+</script>
+</body>
+</html>
